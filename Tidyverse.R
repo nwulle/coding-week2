@@ -126,7 +126,7 @@ dev.off
 
 #Small Multiplies
 
-cairo_pdf(file= "./plot1.pdf", width=12, height = 7)
+cairo_pdf(file= "./plot2.pdf", width=12, height = 7)
 rne %>% 
   mutate(gender = recode(`Code sexe`, "M" = "Male", "F" = "Female")) %>% 
   count(`Libellé de la profession`,gender, sort = TRUE) %>% 
@@ -173,14 +173,70 @@ install.packages("sf")
 install.packages("mapview")
 install.packages("leaflet")
 install.packages("tmap")
+install.packages("tmaptools")
 
 library(sf)
 library(mapview)
 library(leaflet)
 library(tmap)
+library(tmaptools)
 
 toilets<-read_sf("./data/sanisettesparis2011.geojson")
 toilets
 
 mapview(toilets)
 
+toilets %>% leaflet() %>% addTiles() %>% addCircleMarkers(radius = 2, color = "red")
+
+#leaflet produces online maps, you cannot put it into a pdf
+
+#tmap is a great package to build some old fashion maps, print, pdf, etc.
+
+# https://opendata.paris.fr/explore/dataset/voie/export/
+streets <- read_sf("./data/voie.geojson")
+# https://opendata.paris.fr/explore/dataset/arbresremarquablesparis/export/
+trees <- read_sf("./data/arbresremarquablesparis.geojson")
+streets %>% 
+  tm_shape() +
+  tm_lines(alpha = 0.2) +
+  tm_shape(toilets) +
+  tm_dots(col = "red") +
+  tm_shape(trees) +
+  tm_dots(col = "darkgreen") +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass(position = c("left", "top"))
+
+
+churches<-read_sf("./data/churches.geojson")
+
+library(tmaptools)
+install.packages("OpenStreetMap")
+library(OpenStreetMap)
+
+basemap<-read_osm(churches, type= "stamen-toner")
+
+tm_shape(basemap) +
+  tm_rgb() + #just a raster
+  tm_shape(churches) +
+  tm_dots(shape = 3, col="red") +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+
+#installing rJava
+sessionInfo()
+install.packages("rJava")
+Sys.setenv(JAVA_HOME="C:/Program Files/Java/jdk-11.0.2/")
+library(rJava)
+
+
+#projection is necessary when we use densities
+
+#smoothmap only wants to have dots or polygon, that is why we need to go back to too overpass-turbo and tell them to only export polygons.
+#"bottom" in Capitals ("BOTTOM" ) brings things closer to the frame --> smaller margin
+
+#geocoding means changing from adresses to geolocation
+
+#API = Application Programming Interface, the way how softwares communicate with eachother
+#API is the userinterface for machine or some programms
+#
